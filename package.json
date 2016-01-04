@@ -1,0 +1,15 @@
+{
+  "name": "temp_mon",
+  "version": "1.0.0",
+  "description": "temperature monitor",
+  "main": "monitor.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.67.0",
+    "serialport": "^2.0.5"
+  }
+}
