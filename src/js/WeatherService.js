@@ -9,11 +9,11 @@ var WeatherService = function() {
 exports.WeatherService = WeatherService;
 
 /** Return the current weather data as promies. 
- *  @returns  {Promise} Promise that passes an object with two properties, humidity and temperature
+ * @returns  {Promise} Promise that passes an object with two properties, humidity and temperature
  */
 WeatherService.prototype.getCurrentWeather = function() {
-	let deferred = q.defer();
-	let that = this;
+	const deferred = q.defer();
+	const that = this;
 	http.get(this.openWeatherApi + '?APPID=' + this.openWeatherApiKey + '&units=metric&id=2811204', 
 		function (response) {
 			let body = '';
@@ -22,8 +22,8 @@ WeatherService.prototype.getCurrentWeather = function() {
 			});
 
 			response.on('end', function() {
-				let openWeatherApiData = JSON.parse(body);
-				let weatherData = that.convertOpenWeatherData(openWeatherApiData);
+				const openWeatherApiData = JSON.parse(body);
+				const weatherData = that.convertOpenWeatherData(openWeatherApiData);
 				deferred.resolve(weatherData)
 			});
 	});

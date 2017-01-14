@@ -1,52 +1,40 @@
-const serialport = require('serialport');
 const http = require('http');
 const request = require('request');
-const configuration = require('configuration.js');
-const WeatherService = require('WeatherService.js');
+const WeatherService = require('./WeatherService.js').WeatherService;
+const TemperatureMonitor = require('./TemperatureMonitor.js').TemperatureMonitor;
+const Stopwatch = require('statman-stopwatch');
 
-var lastMeasurement = null;
 
-var usbPort = new serialPort.SerialPort(configuration.SERIAL_DEVICE, {
-    baudrate: 9600,
-    parser: serialport.parsers.readline('\n')
-  });
 
-usbPort.on('open', function() {
-  console.log('connection established');
-  usbPort.on('data', function(data) {
-    try {
-      lastMeasurement = JSON.parse(data);
-    } 
-    catch (e) {
-      // incomplete json data
+const tempMon = new TemperatureMonitor();
+const wService = new WeatherService();
+const stopwatch = new Stopwatch();
+const remoteApiPushInterval = 300000;
+const messung = undefined;
+
+
+tempMon.on('newData', function(data) {
+  // if the stopwatch hasn't started do the first push now
+  if (isNaN(stopwatch.read())) {
+    pushDataToRemoteApi(data);
+    stopwatch.start();
+  }
+  else {
+    if (stopwatch.read() > remoteApiPushInterval) {
+      pushDataToRemoteApi(data);
+      stopwatch.reset();
+      stopwatch.start();
     }
-  });
+  }
 });
 
-console.log('waiting... (10 sec)');
-setTimeout(pushMeasurement, 10000);
+tempMon.startPolling();
 
-setInterval(pushMeasurement, 300000);
-
-function pushMeasurement() {
-	if (lastMeasurement == null) {
-		console.log('measurement is null, skipping push');
-		return;
-	}
-
-	// deep copy  the newest measurement
-	let messung = {};
-	messung.feuchtigkeit = lastMeasurement.feuchtigkeit;
-	messung.temperatur = lastMeasurement.temperatur;
-	messung.temperatur_gefuehlt = lastMeasurement.temperatur_gefuehlt;
-	messung.zeit = new Date();
-
-  let weatherService = new WeatherService.WeatherService();
-  weatherService.getCurrentWeather().then(function(data) {
+function pushDataToRemoteApi(data) {
+  messung = data;
+  wService.getCurrentWeather().then(function(data) {
     messung.temperatur_aussen = data.temperature;
     messung.feuchtigkeit_aussen = data.humidity;
-    console.log(messung);
-    // http post
-    request.post({ url: configuration.MEASUREMENT_API, json: messung });
+    request.post({ url: 'http://home-ortiz.rhcloud.com/api/messungen', json: messung });
   });
 }
