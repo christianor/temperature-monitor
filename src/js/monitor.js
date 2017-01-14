@@ -1,7 +1,8 @@
 const serialport = require('serialport');
 const http = require('http');
 const request = require('request');
-const configuration = require('configuration.js');
+const configuration = require('configuration');
+const WeatherService = require('WeatherService');
 
 
 
