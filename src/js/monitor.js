@@ -3,9 +3,6 @@ const request = require('request');
 const WeatherService = require('./WeatherService.js').WeatherService;
 const TemperatureMonitor = require('./TemperatureMonitor.js').TemperatureMonitor;
 const Stopwatch = require('statman-stopwatch');
-
-
-
 const tempMon = new TemperatureMonitor();
 const wService = new WeatherService();
 const stopwatch = new Stopwatch();
