@@ -1,10 +1,8 @@
 const serialport = require('serialport');
 const http = require('http');
 const request = require('request');
-const configuration = require('configuration');
-const WeatherService = require('WeatherService');
-
-
+const configuration = require('configuration.js');
+const WeatherService = require('WeatherService.js');
 
 var lastMeasurement = null;
 
@@ -37,27 +35,18 @@ function pushMeasurement() {
 	}
 
 	// deep copy  the newest measurement
-	var messung = {};
+	let messung = {};
 	messung.feuchtigkeit = lastMeasurement.feuchtigkeit;
 	messung.temperatur = lastMeasurement.temperatur;
 	messung.temperatur_gefuehlt = lastMeasurement.temperatur_gefuehlt;
 	messung.zeit = new Date();
 
-	// get local weather data
-	http.get(configuration.OPENWEATHER_API + '?APPID=' 
-    + configuartion.OPENWEATHER_API_KEY + '&units=metric&id=2811204', function (response) {
-	  var body = '';
-    response.on('data', function(d) {
-        body += d;
-    });
-    response.on('end', function() {
-        var parsed = JSON.parse(body);
-        messung.temperatur_aussen = parsed.main.temp;
-        messung.feuchtigkeit_aussen = parsed.main.humidity;
-
-        console.log(messung);
-        // http post
-        request.post({ url: configuration.MEASUREMENT_API, json: messung });
-    });
-	});
+  let weatherService = new WeatherService.WeatherService();
+  weatherService.getCurrentWeather().then(function(data) {
+    messung.temperatur_aussen = data.temperature;
+    messung.feuchtigkeit_aussen = data.humidity;
+    console.log(messung);
+    // http post
+    request.post({ url: configuration.MEASUREMENT_API, json: messung });
+  });
 }
