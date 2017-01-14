@@ -1,19 +1,13 @@
-var serialport = require('serialport');
-var SerialPort = require('serialport').SerialPort;
-var http = require('http');
+const serialport = require('serialport');
+const http = require('http');
+const request = require('request');
+const configuration = require('configuration.js');
 
-var request = require('request');
 
-var device = '/dev/ttyUSB0';
-// var device = '/dev/tty.usbserial-A603I9CH';
-var openWeatherAPIKey = 'dee5dc4b32fc179257d45b420482c9cb';
-var openWeatherURL = 'http://api.openweathermap.org/data/2.5/weather';
-
-var messungenUrl = 'http://home-ortiz.rhcloud.com/api/messungen';
 
 var lastMeasurement = null;
 
-var usbPort = new SerialPort(device, {
+var usbPort = new serialPort.SerialPort(configuration.SERIAL_DEVICE, {
     baudrate: 9600,
     parser: serialport.parsers.readline('\n')
   });
@@ -49,7 +43,8 @@ function pushMeasurement() {
 	messung.zeit = new Date();
 
 	// get local weather data
-	http.get(openWeatherURL + '?APPID=' + openWeatherAPIKey + '&units=metric&id=2811204', function (response) {
+	http.get(configuration.OPENWEATHER_API + '?APPID=' 
+    + configuartion.OPENWEATHER_API_KEY + '&units=metric&id=2811204', function (response) {
 	  var body = '';
     response.on('data', function(d) {
         body += d;
@@ -61,7 +56,7 @@ function pushMeasurement() {
 
         console.log(messung);
         // http post
-        request.post({ url: messungenUrl, json: messung });
+        request.post({ url: configuration.MEASUREMENT_API, json: messung });
     });
 	});
 }
