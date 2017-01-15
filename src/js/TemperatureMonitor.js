@@ -1,4 +1,4 @@
-const serialport = require('serialport');
+const SerialPort = require('serialport');
 const EventEmitter = require('events');
 
 var TemperatureMonitor = function() {
@@ -12,20 +12,18 @@ TemperatureMonitor.prototype.__proto__ = EventEmitter.prototype;
  * temperature data came in
  */
 TemperatureMonitor.prototype.startPolling = function() {
-    const port = new serialport.SerialPort(this.device, {
+    const port = new SerialPort(this.device, {
         baudrate: 9600,
-        parser: serialport.parsers.readline('\n')
+        parser: SerialPort.parsers.readline('\n')
     });
     const that = this;
 
     port.on('open', function() {
-        console.log('connection established');
-        usbPort.on('data', function(data) {
+        console.log('usb connection to device ' + that.device + ' established');
+        port.on('data', function(data) {
             try {
                 that.lastData = JSON.parse(data);
-                // add time to data
-                data.zeit = new Date();
-                that.emit('newData', data);
+                that.emit('newData', that.lastData);
             } 
             catch (e) {
                 // incomplete data, doesn't have to be handled

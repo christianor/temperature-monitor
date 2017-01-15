@@ -6,18 +6,21 @@ const Stopwatch = require('statman-stopwatch');
 const tempMon = new TemperatureMonitor();
 const wService = new WeatherService();
 const stopwatch = new Stopwatch();
-const remoteApiPushInterval = 300000;
-const messung = undefined;
 
+const REMOTE_API_PUSH_INTERVAL = 300000;
+const REMOTE_API = 'http://home-ortiz.rhcloud.com/api/messungen';
+var messung = undefined;
 
 tempMon.on('newData', function(data) {
   // if the stopwatch hasn't started do the first push now
   if (isNaN(stopwatch.read())) {
+    console.log('executing first push to remote api (' + REMOTE_API + ')');
+    console.log('sensor data is: ' + JSON.stringify(data));
     pushDataToRemoteApi(data);
     stopwatch.start();
   }
   else {
-    if (stopwatch.read() > remoteApiPushInterval) {
+    if (stopwatch.read() > REMOTE_API_PUSH_INTERVAL) {
       pushDataToRemoteApi(data);
       stopwatch.reset();
       stopwatch.start();
@@ -32,6 +35,9 @@ function pushDataToRemoteApi(data) {
   wService.getCurrentWeather().then(function(data) {
     messung.temperatur_aussen = data.temperature;
     messung.feuchtigkeit_aussen = data.humidity;
-    request.post({ url: 'http://home-ortiz.rhcloud.com/api/messungen', json: messung });
+    messung.zeit = new Date();
+    console.log('posting data ' + JSON.stringify(messung) + ' to remote api');
+
+    request.post({ url: REMOTE_API, json: messung });
   });
 }
